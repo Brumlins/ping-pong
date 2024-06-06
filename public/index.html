@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,9 +12,6 @@
     <h1>Ping Pong Game</h1>
     <input type="text" id="playerName" placeholder="Enter your name">
     <button onclick="startGame()">Start Game</button>
-    <!--<button onclick="createParty()">Create Party</button>
-    <input type="text" id="partyCode" placeholder="Enter party code">
-    <button onclick="joinParty()">Join Party</button>-->
   </div>
   <script>
     function startGame() {
@@ -22,20 +20,7 @@
       window.location.href = 'game.html';
     }
 
-    //function createParty() {
-    //  const playerName = document.getElementById('playerName').value || 'You';
-    //  localStorage.setItem('playerName', playerName);
-    //  window.location.href = 'game.html?createParty=true';
-    //}
-    
-    //function joinParty() {
-    //  const playerName = document.getElementById('playerName').value || 'You';
-    //  const partyCode = document.getElementById('partyCode').value;
-    //  localStorage.setItem('playerName', playerName);
-    //  window.location.href = `game.html?joinParty=${partyCode}`;
-    //}
   </script>
-
   <footer>
     <p>Tomáš Řehulek - Filip Hřivňacký</p>
     <p>IT2 SŠPU Opava - 2024</p>

@@ -1,3 +1,4 @@
+// game.js
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 
@@ -130,5 +131,7 @@ socket.on('playerDisconnected', () => {
   console.log('Opponent disconnected');
   window.location.href = '/'; // Přesměrování na domovskou stránku po odpojení
 });
+
+
 
 gameLoop();
