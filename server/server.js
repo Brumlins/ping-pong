@@ -6,102 +6,64 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 
-let rooms = {}; // Room storage
+let rooms = {};
+let roomCodes = {};
 
-function findAvailableRoom() {
-  for (let room in rooms) {
-    if (rooms[room].players.length < 2) {
-      return room;
+function generateRoomCode() {
+  return Math.random().toString(36).substring(2, 7);
+}
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('createRoom', () => {
+    let roomCode = generateRoomCode();
+    rooms[roomCode] = [socket.id];
+    roomCodes[socket.id] = roomCode;
+    socket.join(roomCode);
+    socket.emit('roomCreated', { room: roomCode });
+  });
+
+  socket.on('joinRoom', (data) => {
+    let roomCode = data.room;
+    if (rooms[roomCode] && rooms[roomCode].length === 1) {
+      rooms[roomCode].push(socket.id);
+      roomCodes[socket.id] = roomCode;
+      socket.join(roomCode);
+      io.to(roomCode).emit('startGame');
+    } else {
+      socket.emit('roomError', { message: 'Room not found or full' });
     }
-  }
-  const newRoom = `room-${Object.keys(rooms).length + 1}`;
-  rooms[newRoom] = { players: [], ball: { x: 400, y: 300, radius: 10, speedX: 5, speedY: 5 }, score: [0, 0], paddles: [{ y: 250 }, { y: 250 }] };
-  return newRoom;
-}
+  });
 
-function updateBallPosition(ball, paddles, score, room) {
-  ball.x += ball.speedX;
-  ball.y += ball.speedY;
-
-  if (ball.y + ball.radius > 600 || ball.y - ball.radius < 0) {
-    ball.speedY = -ball.speedY;
-  }
-
-  // Check for collision with paddles
-  if (ball.x - ball.radius < 20 && ball.y > paddles[0].y && ball.y < paddles[0].y + 100) {
-    ball.speedX = -ball.speedX;
-  }
-
-  if (ball.x + ball.radius > 780 && ball.y > paddles[1].y && ball.y < paddles[1].y + 100) {
-    ball.speedX = -ball.speedX;
-  }
-
-  // Check for scoring
-  if (ball.x - ball.radius < 0) {
-    score[1]++;
-    resetBall(ball);
-    io.to(room).emit('scoreUpdate', score);
-  }
-
-  if (ball.x + ball.radius > 800) {
-    score[0]++;
-    resetBall(ball);
-    io.to(room).emit('scoreUpdate', score);
-  }
-}
-
-function resetBall(ball) {
-  ball.x = 400;
-  ball.y = 300;
-  ball.speedX = -ball.speedX;
-  ball.speedY = 5;
-}
-
-io.on('connection', socket => {
-  console.log('New player connected:', socket.id);
-
-  const room = findAvailableRoom();
-  socket.join(room);
-  rooms[room].players.push(socket.id);
-
-  console.log(`Player ${socket.id} joined ${room}`);
-
-  const playerIndex = rooms[room].players.indexOf(socket.id);
-  socket.emit('roomJoined', { room, playerIndex });
-
-  if (rooms[room].players.length === 2) {
-    io.to(room).emit('startGame');
-
-    // Start ball update interval for the room
-    if (!rooms[room].intervalId) {
-      rooms[room].intervalId = setInterval(() => {
-        updateBallPosition(rooms[room].ball, rooms[room].paddles, rooms[room].score, room);
-        io.to(room).emit('ballUpdate', rooms[room].ball);
-      }, 1000 / 60);
+  socket.on('move', (data) => {
+    let roomCode = roomCodes[socket.id];
+    if (roomCode) {
+      socket.to(roomCode).emit('opponentMove', data);
     }
-  } else {
-    socket.emit('waitingForPlayer');
-  }
-
-  socket.on('move', data => {
-    rooms[room].paddles[data.playerIndex].y = data.y;
-    socket.to(room).emit('opponentMove', data);
   });
 
   socket.on('disconnect', () => {
-    console.log('Player disconnected:', socket.id);
-    rooms[room].players = rooms[room].players.filter(id => id !== socket.id);
-    socket.to(room).emit('playerDisconnected');
-
-    if (rooms[room].players.length === 0) {
-      clearInterval(rooms[room].intervalId);
-      delete rooms[room];
+    let roomCode = roomCodes[socket.id];
+    if (roomCode) {
+      let room = rooms[roomCode];
+      if (room) {
+        room = room.filter(id => id !== socket.id);
+        if (room.length === 0) {
+          delete rooms[roomCode];
+        } else {
+          rooms[roomCode] = room;
+          io.to(roomCode).emit('playerDisconnected');
+        }
+      }
+      delete roomCodes[socket.id];
     }
+    console.log('A user disconnected:', socket.id);
   });
 });
 
 server.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log('Listening on port 3000');
 });
