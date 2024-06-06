@@ -12,6 +12,7 @@ const socket = io();
 
 let isWaitingForPlayer = true;
 let playerIndex = -1;
+let playerName = localStorage.getItem('playerName') || 'You';
 
 function drawRect(x, y, w, h, color) {
   context.fillStyle = color;
@@ -34,23 +35,29 @@ function drawText(text, x, y, color) {
 
 function render() {
   context.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   if (isWaitingForPlayer) {
     context.fillStyle = 'black';
     context.font = '30px Arial';
     context.fillText('Waiting for other player', canvas.width / 2 - 150, canvas.height / 2);
   } else {
-    // Determine paddle positions based on player index
+    // Determine paddle positions and texts based on player index
     if (playerIndex === 0) {
       drawRect(playerPaddle.x, playerPaddle.y, paddleWidth, paddleHeight, 'blue');
       drawRect(opponentPaddle.x, opponentPaddle.y, paddleWidth, paddleHeight, 'red');
+      drawText(playerName, 50, 50, 'blue');
+      drawText('Opponent', canvas.width - 200, 50, 'red');
+      drawText(`You: ${playerScore}`, 50, 90, 'blue');
+      drawText(`Opponent: ${opponentScore}`, canvas.width - 200, 90, 'red');
     } else if (playerIndex === 1) {
       drawRect(opponentPaddle.x, opponentPaddle.y, paddleWidth, paddleHeight, 'blue');
       drawRect(playerPaddle.x, playerPaddle.y, paddleWidth, paddleHeight, 'red');
+      drawText('Opponent', 50, 50, 'red');
+      drawText(playerName, canvas.width - 200, 50, 'blue');
+      drawText(`Opponent: ${opponentScore}`, 50, 90, 'red');
+      drawText(`You: ${playerScore}`, canvas.width - 200, 90, 'blue');
     }
     drawCircle(ball.x, ball.y, ball.radius, 'green');
-    drawText(`Player: ${playerScore}`, 50, 50, 'blue');
-    drawText(`Opponent: ${opponentScore}`, canvas.width - 200, 50, 'red');
   }
 }
 
@@ -68,15 +75,23 @@ canvas.addEventListener('mousemove', event => {
   let rect = canvas.getBoundingClientRect();
   let root = document.documentElement;
   let mouseY = event.clientY - rect.top - root.scrollTop;
-  playerPaddle.y = mouseY - paddleHeight / 2;
 
-  // Emit move event with playerIndex
-  socket.emit('move', { y: playerPaddle.y, playerIndex });
+  if (playerIndex === 0) {
+    playerPaddle.y = mouseY - paddleHeight / 2;
+    socket.emit('move', { y: playerPaddle.y, playerIndex });
+  } else if (playerIndex === 1) {
+    opponentPaddle.y = mouseY - paddleHeight / 2;
+    socket.emit('move', { y: opponentPaddle.y, playerIndex });
+  }
 });
 
 socket.on('opponentMove', data => {
   if (data.playerIndex !== playerIndex) {
-    opponentPaddle.y = data.y;
+    if (playerIndex === 0) {
+      opponentPaddle.y = data.y;
+    } else if (playerIndex === 1) {
+      playerPaddle.y = data.y;
+    }
   }
 });
 
