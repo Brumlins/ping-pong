@@ -13,6 +13,7 @@ const socket = io();
 let isWaitingForPlayer = true;
 let playerIndex = -1;
 let playerName = localStorage.getItem('playerName') || 'You';
+let opponentName = 'Opponent';
 
 function drawRect(x, y, w, h, color) {
   context.fillStyle = color;
@@ -27,9 +28,9 @@ function drawCircle(x, y, r, color) {
   context.fill();
 }
 
-function drawText(text, x, y, color) {
+function drawText(text, x, y, color, size = '30px') {
   context.fillStyle = color;
-  context.font = '30px Arial';
+  context.font = size + ' Arial';
   context.fillText(text, x, y);
 }
 
@@ -41,21 +42,16 @@ function render() {
     context.font = '30px Arial';
     context.fillText('Waiting for other player', canvas.width / 2 - 150, canvas.height / 2);
   } else {
-    // Determine paddle positions and texts based on player index
     if (playerIndex === 0) {
       drawRect(playerPaddle.x, playerPaddle.y, paddleWidth, paddleHeight, 'blue');
       drawRect(opponentPaddle.x, opponentPaddle.y, paddleWidth, paddleHeight, 'red');
-      drawText(playerName, 50, 50, 'blue');
-      drawText('Opponent', canvas.width - 200, 50, 'red');
-      drawText(`You: ${playerScore}`, 50, 90, 'blue');
-      drawText(`Opponent: ${opponentScore}`, canvas.width - 200, 90, 'red');
+      drawText(`${playerName}: ${playerScore}`, 50, 50, 'blue');
+      drawText(`${opponentName}: ${opponentScore}`, canvas.width - 200, 50, 'red');
     } else if (playerIndex === 1) {
       drawRect(opponentPaddle.x, opponentPaddle.y, paddleWidth, paddleHeight, 'blue');
       drawRect(playerPaddle.x, playerPaddle.y, paddleWidth, paddleHeight, 'red');
-      drawText('Opponent', 50, 50, 'red');
-      drawText(playerName, canvas.width - 200, 50, 'blue');
-      drawText(`Opponent: ${opponentScore}`, 50, 90, 'red');
-      drawText(`You: ${playerScore}`, canvas.width - 200, 90, 'blue');
+      drawText(`${opponentName}: ${opponentScore}`, 50, 50, 'red');
+      drawText(`${playerName}: ${playerScore}`, canvas.width - 200, 50, 'blue');
     }
     drawCircle(ball.x, ball.y, ball.radius, 'green');
   }
@@ -108,20 +104,31 @@ socket.on('scoreUpdate', data => {
 socket.on('roomJoined', data => {
   console.log(`Joined room: ${data.room}`);
   playerIndex = data.playerIndex;
+  if (playerIndex === 1) {
+    socket.emit('opponentName', { name: playerName });
+  }
+});
+
+socket.on('opponentName', data => {
+  opponentName = data.name;
 });
 
 socket.on('startGame', () => {
   isWaitingForPlayer = false;
 });
 
-socket.on('waitingForPlayer', () => {
+socket.on('waitingForPlayer', data => {
   isWaitingForPlayer = true;
+  const partyCodeDisplay = document.getElementById('partyCodeDisplay');
+  if (data.room) {
+    partyCodeDisplay.innerText = `Party Code: ${data.room}`;
+    partyCodeDisplay.style.display = 'block';
+  }
 });
 
 socket.on('playerDisconnected', () => {
   console.log('Opponent disconnected');
-  isWaitingForPlayer = true;
-  // Additional logic to handle the disconnection
+  window.location.href = '/'; // Přesměrování na domovskou stránku po odpojení
 });
 
 gameLoop();

@@ -1,40 +1,45 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static('public'));
 
 let rooms = {};
 let roomCodes = {};
-
-function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 7);
-}
 
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
   socket.on('createRoom', () => {
-    let roomCode = generateRoomCode();
+    let roomCode = uuidv4().slice(0, 6);
     rooms[roomCode] = [socket.id];
     roomCodes[socket.id] = roomCode;
     socket.join(roomCode);
-    socket.emit('roomCreated', { room: roomCode });
+    socket.emit('waitingForPlayer', { room: roomCode });
   });
 
   socket.on('joinRoom', (data) => {
-    let roomCode = data.room;
+    let roomCode = data.roomCode;
     if (rooms[roomCode] && rooms[roomCode].length === 1) {
       rooms[roomCode].push(socket.id);
       roomCodes[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('startGame');
+      io.to(roomCode).emit('opponentName', { name: 'Opponent' });
     } else {
       socket.emit('roomError', { message: 'Room not found or full' });
+    }
+  });
+
+  socket.on('opponentName', (data) => {
+    let roomCode = roomCodes[socket.id];
+    if (roomCode) {
+      socket.to(roomCode).emit('opponentName', data);
     }
   });
 
