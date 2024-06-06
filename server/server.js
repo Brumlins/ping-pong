@@ -30,7 +30,10 @@ io.on('connection', (socket) => {
       roomCodes[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('startGame');
-      io.to(roomCode).emit('opponentName', { name: 'Opponent' });
+  
+      // Emit player's name to all players in the room
+      const playerName = data.playerName;
+      io.to(roomCode).emit('opponentName', { name: playerName }); // Add this line
     } else {
       socket.emit('roomError', { message: 'Room not found or full' });
     }

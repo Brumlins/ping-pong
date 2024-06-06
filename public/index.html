@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ping Pong Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <h1>Ping Pong Game</h1>
     <input type="text" id="playerName" placeholder="Enter your name">
     <button onclick="startGame()">Start Game</button>
-    <button onclick="createParty()">Create Party</button>
+    <!--<button onclick="createParty()">Create Party</button>
     <input type="text" id="partyCode" placeholder="Enter party code">
-    <button onclick="joinParty()">Join Party</button>
+    <button onclick="joinParty()">Join Party</button>-->
   </div>
   <script>
     function startGame() {
@@ -22,18 +22,23 @@
       window.location.href = 'game.html';
     }
 
-    function createParty() {
-      const playerName = document.getElementById('playerName').value || 'You';
-      localStorage.setItem('playerName', playerName);
-      window.location.href = 'game.html?createParty=true';
-    }
-
-    function joinParty() {
-      const playerName = document.getElementById('playerName').value || 'You';
-      const partyCode = document.getElementById('partyCode').value;
-      localStorage.setItem('playerName', playerName);
-      window.location.href = `game.html?joinParty=${partyCode}`;
-    }
+    //function createParty() {
+    //  const playerName = document.getElementById('playerName').value || 'You';
+    //  localStorage.setItem('playerName', playerName);
+    //  window.location.href = 'game.html?createParty=true';
+    //}
+    
+    //function joinParty() {
+    //  const playerName = document.getElementById('playerName').value || 'You';
+    //  const partyCode = document.getElementById('partyCode').value;
+    //  localStorage.setItem('playerName', playerName);
+    //  window.location.href = `game.html?joinParty=${partyCode}`;
+    //}
   </script>
+
+  <footer>
+    <p>Tomáš Řehulek - Filip Hřivňacký</p>
+    <p>IT2 SŠPU Opava - 2024</p>
+  </footer>
 </body>
 </html>

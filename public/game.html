@@ -4,19 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ping Pong Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <button id="exitButton" onclick="exitGame()">Exit Game</button>
   <div id="countdown"></div>
-  <div id="partyCodeDisplay"></div>
+  <div id="playerNames"></div> <!-- New div to display player names -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="game.js"></script>
   <script>
     function exitGame() {
       window.location.href = 'index.html';
     }
+
+    // Function to display player names
+    function displayPlayerNames(playerName, opponentName) {
+      const playerNamesDiv = document.getElementById('playerNames');
+      const opponentDisplayName = opponentName === 'Opponent' ? opponentName : playerName;
+      playerNamesDiv.innerHTML = `${playerName}: ${opponentDisplayName}`;
+    }
+
+    // Call function to display player names when the game page loads
+    getPlayerNames();
   </script>
+  <footer>
+    <p>Tomáš Řehulek - Filip Hřivňacký</p>
+    <p>IT2 SŠPU Opava - 2024</p>
+  </footer>
 </body>
 </html>
