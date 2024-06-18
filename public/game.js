@@ -1,4 +1,3 @@
-// game.js
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 
@@ -100,6 +99,7 @@ socket.on('ballUpdate', data => {
 socket.on('scoreUpdate', data => {
   playerScore = data[playerIndex];
   opponentScore = data[1 - playerIndex];
+  render(); // Re-render on score update
 });
 
 socket.on('roomJoined', data => {
@@ -112,6 +112,7 @@ socket.on('roomJoined', data => {
 
 socket.on('opponentName', data => {
   opponentName = data.name;
+  displayPlayerNames(); // Update player names display
 });
 
 socket.on('startGame', () => {
@@ -132,6 +133,14 @@ socket.on('playerDisconnected', () => {
   window.location.href = '/'; // Přesměrování na domovskou stránku po odpojení
 });
 
+function getPlayerNames() {
+  // No need to call this immediately on page load, as we have the event listeners and socket events
+  // to update the names dynamically when they are received.
+}
 
+function displayPlayerNames() {
+  const playerNamesDiv = document.getElementById('playerNames');
+
+}
 
 gameLoop();
