@@ -4,20 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ping Pong Game</title>
+  <!-- pripojeni externiho css souboru -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- canvas element pro hru, nastavena sirka a vyska -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <!-- tlacitko pro ukonceni hry -->
   <button id="exitButton" onclick="exitGame()">Exit Game</button>
-  <div id="playerNames"></div> <!-- New div to display player names -->
+  <!-- div pro zobrazovani jmen hracu -->
+  <div id="playerNames"></div> 
+  <!-- pripojeni socket.io knihovny -->
   <script src="/socket.io/socket.io.js"></script>
+  <!-- pripojeni externiho javascript souboru -->
   <script src="game.js"></script>
   <script>
+    // funkce pro ukonceni hry, presmeruje na index.html
     function exitGame() {
       window.location.href = 'index.html';
     }
 
-    // Call function to display player names when the game page loads
+    // zavola funkci pro ziskani jmen hracu
     getPlayerNames();
   </script>
   <footer>

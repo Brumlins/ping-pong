@@ -1,25 +1,33 @@
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 
+// nastaveni sirky a vysky padu a jejich pocatecni pozice
 let paddleWidth = 10, paddleHeight = 100;
 let playerPaddle = { x: 10, y: canvas.height / 2 - paddleHeight / 2 };
 let opponentPaddle = { x: canvas.width - paddleWidth - 10, y: canvas.height / 2 - paddleHeight / 2 };
+
+// nastaveni pocatecni pozice a rychlosti micku
 let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 5, speedY: 5 };
+
+// nastaveni pocatecnich skore hracu
 let playerScore = 0;
 let opponentScore = 0;
 
 const socket = io();
 
+// stav hry a informace o hraci
 let isWaitingForPlayer = true;
 let playerIndex = -1;
 let playerName = localStorage.getItem('playerName') || 'You';
 let opponentName = 'Opponent';
 
+// funkce pro vykresleni obdelniku
 function drawRect(x, y, w, h, color) {
   context.fillStyle = color;
   context.fillRect(x, y, w, h);
 }
 
+// funkce pro vykresleni kruhu
 function drawCircle(x, y, r, color) {
   context.fillStyle = color;
   context.beginPath();
@@ -28,12 +36,14 @@ function drawCircle(x, y, r, color) {
   context.fill();
 }
 
+// funkce pro vykresleni textu
 function drawText(text, x, y, color, size = '30px') {
   context.fillStyle = color;
   context.font = size + ' Arial';
   context.fillText(text, x, y);
 }
 
+// funkce pro vykresleni hry
 function render() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -57,16 +67,17 @@ function render() {
   }
 }
 
-function update() {
-  // Update logic is handled by the server
-}
+// funkce pro aktualizaci herni logiky, rizena serverem
+function update() {}
 
+// hlavni herni smycka
 function gameLoop() {
   update();
   render();
   requestAnimationFrame(gameLoop);
 }
 
+// udalost pro pohyb mysi, aktualizuje pozici padu a odesle na server
 canvas.addEventListener('mousemove', event => {
   let rect = canvas.getBoundingClientRect();
   let root = document.documentElement;
@@ -81,6 +92,7 @@ canvas.addEventListener('mousemove', event => {
   }
 });
 
+// udalost pro prijeti pohybu soupere
 socket.on('opponentMove', data => {
   if (data.playerIndex !== playerIndex) {
     if (playerIndex === 0) {
@@ -91,17 +103,20 @@ socket.on('opponentMove', data => {
   }
 });
 
+// udalost pro aktualizaci pozice micku
 socket.on('ballUpdate', data => {
   ball.x = data.x;
   ball.y = data.y;
 });
 
+// udalost pro aktualizaci skore
 socket.on('scoreUpdate', data => {
   playerScore = data[playerIndex];
   opponentScore = data[1 - playerIndex];
-  render(); // Re-render on score update
+  render(); // vykresleni zmeny skore
 });
 
+// udalost pro pripojeni do mistnosti
 socket.on('roomJoined', data => {
   console.log(`Joined room: ${data.room}`);
   playerIndex = data.playerIndex;
@@ -110,15 +125,18 @@ socket.on('roomJoined', data => {
   }
 });
 
+// udalost pro prijeti jmena soupere
 socket.on('opponentName', data => {
   opponentName = data.name;
-  displayPlayerNames(); // Update player names display
+  displayPlayerNames(); // aktualizace zobrazeni jmen hracu
 });
 
+// udalost pro zacatek hry
 socket.on('startGame', () => {
   isWaitingForPlayer = false;
 });
 
+// udalost pro cekani na hrace
 socket.on('waitingForPlayer', data => {
   isWaitingForPlayer = true;
   const partyCodeDisplay = document.getElementById('partyCodeDisplay');
@@ -128,19 +146,19 @@ socket.on('waitingForPlayer', data => {
   }
 });
 
+// udalost pro odpojeni hrace
 socket.on('playerDisconnected', () => {
   console.log('Opponent disconnected');
-  window.location.href = '/'; // Přesměrování na domovskou stránku po odpojení
+  window.location.href = '/'; // presmerovani na domovskou stranku po odpojeni
 });
 
-function getPlayerNames() {
-  // No need to call this immediately on page load, as we have the event listeners and socket events
-  // to update the names dynamically when they are received.
-}
+// funkce pro ziskani jmen hracu, zatim nevyuzita
+function getPlayerNames() {}
 
+// funkce pro zobrazeni jmen hracu, zatim neimplementovana
 function displayPlayerNames() {
   const playerNamesDiv = document.getElementById('playerNames');
-
 }
 
+// spusteni herni smycky
 gameLoop();

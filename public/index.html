@@ -9,13 +9,19 @@
 <body>
   <div class="container">
     <h1>Ping Pong Game</h1>
+    <!-- vstup pro zadani jmena hrace -->
     <input type="text" id="playerName" placeholder="Enter your name">
+    <!-- tlacitko pro spusteni hry -->
     <button onclick="startGame()">Start Game</button>
   </div>
   <script>
+    // funkce pro spusteni hry
     function startGame() {
+      // ziskani jmena hrace z inputu nebo nastaveni defaultniho jmena
       const playerName = document.getElementById('playerName').value || 'You';
+      // ulozeni jmena hrace do localStorage
       localStorage.setItem('playerName', playerName);
+      // presmerovani na herni stranku
       window.location.href = 'game.html';
     }
   </script>
